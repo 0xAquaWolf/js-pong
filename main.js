@@ -7,16 +7,19 @@ let ballY = 50;
 let ballSpeedX = 10;
 let ballSpeedY = 5;
 
+let player1Score = 0;
+let player2Score = 0;
+
 // human player
 let paddle1Y = 250;
 let paddle1X = 0;
 
-// ai player
-let paddle2Y = 0;
-let paddle2X = 0;
-
 const PADDLE_HEIGHT = 100;
 const PADDLE_WIDTH = 10;
+
+// ai player
+let paddle2Y = canvas.height / 2 - PADDLE_HEIGHT / 2;
+let paddle2X = canvas.width - PADDLE_WIDTH;
 
 window.onload = () => {
   console.log("Make sure to like and subscribe :)");
@@ -32,7 +35,7 @@ window.onload = () => {
     let { x, y } = calculateMousePosition(e);
     console.log({ x, y });
     paddle1Y = y - PADDLE_HEIGHT / 2;
-    paddle1X = x;
+    // paddle1X = x;
   });
 };
 
@@ -62,21 +65,46 @@ function colorRect(leftX, topY, width, height, drawColor) {
   canvasContext.fillRect(leftX, topY, width, height);
 }
 
+function computerMovement() {
+  let paddle2YCenter = paddle2Y + PADDLE_HEIGHT / 2;
+  if (paddle2YCenter < ballY - 35) {
+    paddle2Y += 6;
+  } else if (paddle2YCenter > ballY + 35) {
+    paddle2Y -= 6;
+  }
+}
+
 function moveEverything() {
+  computerMovement();
+
   ballX += ballSpeedX;
   ballY += ballSpeedY;
 
-  if (ballX > canvas.width) {
-    ballSpeedX = -ballSpeedX;
-  }
+  // x axis collisions
 
   if (ballX < 0) {
+    // left side
     if (ballY > paddle1Y && ballY < paddle1Y + PADDLE_HEIGHT) {
       // if the ball is inside of the paddle
       ballSpeedX = -ballSpeedX;
-    } else ballReset();
+    } else {
+      player2Score++;
+      ballReset();
+    }
   }
 
+  if (ballX > canvas.width) {
+    // right side of canvas
+    if (ballY > paddle2Y && ballY < paddle2Y + PADDLE_HEIGHT) {
+      // if the ball is inside of the paddle
+      ballSpeedX = -ballSpeedX;
+    } else {
+      player1Score++;
+      ballReset();
+    }
+  }
+
+  // y axis collisions
   if (ballY > canvas.height) {
     ballSpeedY = -ballSpeedY;
   }
@@ -95,12 +123,19 @@ function drawBall(centerX, centerY, radius, drawColor) {
 }
 
 function drawEverything() {
-  // console.log({ ballX });
   // black canvas
   colorRect(0, 0, canvas.width, canvas.height, "#181825");
 
-  drawBall(ballX, ballY, 10, "#f38ba8");
+  drawBall(ballX, ballY, 10, "#f5e0dc");
 
   // left paddle
-  colorRect(0, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, "#cdd6f4");
+  colorRect(0, paddle1Y, PADDLE_WIDTH, PADDLE_HEIGHT, "#89b4fa");
+
+  // right paddle
+  colorRect(paddle2X, paddle2Y, PADDLE_WIDTH, PADDLE_HEIGHT, "#f38ba8");
+
+  // draw the score
+  canvasContext.fillStyle = "#cdd6f4";
+  canvasContext.fillText(`Player 1: ${player1Score}`, 20, 20); // player 1 score
+  canvasContext.fillText(`Player 2: ${player2Score}`, canvas.width - 80, 20); // player 2 score
 }
